@@ -19,7 +19,7 @@ class Bridge(object):
             "translate": conf().get("translate", "baidu"),
         }
         model_type = conf().get("model") or const.GPT35
-        if model_type in ["text-davinci-003"]:
+        if model_type in ["text-davinci-003","gpt-4-turbo"]:
             self.btype["chat"] = const.OPEN_AI
         if conf().get("use_azure_chatgpt", False):
             self.btype["chat"] = const.CHATGPTONAZURE

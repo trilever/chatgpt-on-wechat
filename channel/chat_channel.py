@@ -86,14 +86,14 @@ class ChatChannel(Channel):
             if e_context.is_pass() or context is None:
                 return context
             if cmsg.from_user_id == self.user_id and not config.get("trigger_by_self", True):
-                logger.debug("[WX]self message skipped")
+                logger.info("[WX]self message skipped")
                 return None
 
         # 消息内容匹配过程，并处理content
         if ctype == ContextType.TEXT:
             if first_in and "」\n- - - - - - -" in content:  # 初次匹配 过滤引用消息
-                logger.debug(content)
-                logger.debug("[WX]reference query skipped")
+                logger.info(content)
+                logger.info("[WX]reference query skipped")
                 return None
 
             nick_name_black_list = conf().get("nick_name_black_list", [])
@@ -187,7 +187,7 @@ class ChatChannel(Channel):
         )
         reply = e_context["reply"]
         if not e_context.is_pass():
-            logger.debug("[WX] ready to handle context: type={}, content={}".format(context.type, context.content))
+            logger.info("[WX] ready to handle context: type={}, content={}".format(context.type, context.content))
             if context.type == ContextType.TEXT or context.type == ContextType.IMAGE_CREATE:  # 文字和图片消息
                 context["channel"] = e_context["channel"]
                 reply = super().build_reply_content(context.content, context)

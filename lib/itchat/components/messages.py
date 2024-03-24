@@ -274,12 +274,14 @@ def send_raw_msg(self, msgType, content, toUserName):
             },
         'Scene': 0, }
     headers = { 'ContentType': 'application/json; charset=UTF-8', 'User-Agent' : config.USER_AGENT }
+    logger.info("request send raw msg:{}", data)
     r = self.s.post(url, headers=headers,
         data=json.dumps(data, ensure_ascii=False).encode('utf8'))
+    logger.info("request send msg result:{}", r)
     return ReturnValue(rawResponse=r)
 
 def send_msg(self, msg='Test Message', toUserName=None):
-    logger.debug('Request to send a text message to %s: %s' % (toUserName, msg))
+    logger.info('Request to send a text message to %s: %s' % (toUserName, msg))
     r = self.send_raw_msg(1, msg, toUserName)
     return r
 

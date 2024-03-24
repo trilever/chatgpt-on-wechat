@@ -25,6 +25,7 @@ from config import conf, get_appdata_dir
 from lib import itchat
 from lib.itchat.content import *
 
+from apscheduler.schedulers.background import BackgroundScheduler
 
 @itchat.msg_register([TEXT, VOICE, PICTURE, NOTE, ATTACHMENT, SHARING])
 def handler_single_msg(msg):
@@ -129,11 +130,33 @@ class WechatChannel(ChatChannel):
             self.user_id = itchat.instance.storageClass.userName
             self.name = itchat.instance.storageClass.nickName
             logger.info("Wechat login success, user_id: {}, nickname: {}".format(self.user_id, self.name))
+            # add heart beat
+            self.addHeartBeat()
+            logger.info('after add heart beat schedule')
             # start message listener
             itchat.run()
         except Exception as e:
             logger.error(e)
 
+    # add heart beat schedule
+    def addHeartBeat(self):
+        # BackgroundScheduler
+        scheduler = BackgroundScheduler()
+        scheduler.add_job(self.send_self, 'interval', seconds=10, id='heartbeatschedule')
+        # 添加任务，时间间隔为5秒
+        scheduler.start()
+    
+    # heart beat to self          
+    def send_self(self):
+        logger.info("start heart beat")
+        context = Context()
+        context["receiver"]='filehelper'
+        reply = Reply()
+        reply.type = ReplyType.TEXT
+        reply.content = "heart beat send request"
+        self.send(reply, context)
+        logger.info("end heart beat")
+        
     def exitCallback(self):
         try:
             from common.linkai_client import chat_client
@@ -171,15 +194,15 @@ class WechatChannel(ChatChannel):
         if cmsg.ctype == ContextType.VOICE:
             if conf().get("speech_recognition") != True:
                 return
-            logger.debug("[WX]receive voice msg: {}".format(cmsg.content))
+            logger.info("[WX]receive voice msg: {}".format(cmsg.content))
         elif cmsg.ctype == ContextType.IMAGE:
-            logger.debug("[WX]receive image msg: {}".format(cmsg.content))
+            logger.info("[WX]receive image msg: {}".format(cmsg.content))
         elif cmsg.ctype == ContextType.PATPAT:
-            logger.debug("[WX]receive patpat msg: {}".format(cmsg.content))
+            logger.info("[WX]receive patpat msg: {}".format(cmsg.content))
         elif cmsg.ctype == ContextType.TEXT:
-            logger.debug("[WX]receive text msg: {}, cmsg={}".format(json.dumps(cmsg._rawmsg, ensure_ascii=False), cmsg))
+            logger.info("[WX]receive text msg: {}, cmsg={}".format(json.dumps(cmsg._rawmsg, ensure_ascii=False), cmsg))
         else:
-            logger.debug("[WX]receive msg: {}, cmsg={}".format(cmsg.content, cmsg))
+            logger.info("[WX]receive msg: {}, cmsg={}".format(cmsg.content, cmsg))
         context = self._compose_context(cmsg.ctype, cmsg.content, isgroup=False, msg=cmsg)
         if context:
             self.produce(context)
